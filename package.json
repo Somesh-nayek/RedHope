@@ -1,0 +1,26 @@
+{
+  "name": "red-hope",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,scss,yml,yaml}\"",
+    "db:generate": "pnpm --filter @red-hope/db db:generate",
+    "db:migrate": "pnpm --filter @red-hope/db db:migrate",
+    "db:seed": "pnpm --filter @red-hope/db db:seed"
+  },
+  "devDependencies": {
+    "@red-hope/config": "workspace:*",
+    "prettier": "^3.3.3",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

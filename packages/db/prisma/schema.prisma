@@ -1,0 +1,269 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  HOSPITAL
+  DONOR
+  VOLUNTEER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum BloodGroup {
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+}
+
+enum RequestUrgency {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RequestStatus {
+  OPEN
+  ACCEPTED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  CANCELLED
+  EXPIRED
+}
+
+enum ResponseStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+model User {
+  id                     String              @id @default(cuid())
+  email                  String              @unique
+  phoneNumber            String?             @unique
+  name                   String
+  passwordHash           String
+  hashedRefreshToken     String?
+  role                   UserRole            @default(DONOR)
+  status                 UserStatus          @default(ACTIVE)
+  donorProfile           DonorProfile?
+  hospitalProfile        HospitalProfile?
+  createdBloodRequest    BloodRequest[]      @relation("BloodRequestCreatedBy")
+  notifications          Notification[]
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  @@index([role])
+  @@index([status])
+}
+
+model DonorProfile {
+  id             String             @id @default(cuid())
+  userId          String             @unique
+  bloodGroup      BloodGroup
+  dateOfBirth     DateTime?
+  gender          String?
+  weightKg        Float?
+  address         String?
+  city            String
+  state           String
+  postalCode      String?
+  isEligible      Boolean            @default(true)
+  lastDonationAt  DateTime?
+  emergencyContact String?
+  medicalNotes    String?
+  user            User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  donations       Donation[]
+  responses       DonationResponse[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([bloodGroup])
+  @@index([city, state])
+  @@index([isEligible])
+  @@index([lastDonationAt])
+}
+
+model HospitalProfile {
+  id               String              @id @default(cuid())
+  userId           String              @unique
+  hospitalName     String
+  licenseNumber    String              @unique
+  contactNumber    String
+  address          String
+  city             String
+  state            String
+  postalCode       String?
+  emergencyContact String?
+  approved         Boolean             @default(false)
+  user             User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  inventories      BloodInventory[]
+  requests         BloodRequest[]      @relation("BloodRequestHospital")
+  camps            BloodDonationCamp[]
+  donations        Donation[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([city, state])
+  @@index([hospitalName])
+  @@index([approved])
+}
+
+model BloodInventory {
+  id               String          @id @default(cuid())
+  hospitalId       String
+  bloodGroup       BloodGroup
+  unitsAvailable   Int             @default(0)
+  unitsReserved    Int             @default(0)
+  minimumThreshold Int             @default(5)
+  hospital         HospitalProfile @relation(fields: [hospitalId], references: [id], onDelete: Restrict)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([hospitalId, bloodGroup])
+  @@index([bloodGroup])
+  @@index([unitsAvailable])
+}
+
+model BloodRequest {
+  id                  String              @id @default(cuid())
+  requestedByHospitalId String
+  createdByUserId     String?
+  bloodGroup          BloodGroup
+  unitsRequired       Int
+  unitsFulfilled      Int                 @default(0)
+  urgency             RequestUrgency
+  status              RequestStatus       @default(OPEN)
+  neededBy            DateTime
+  reason              String
+  patientName         String?
+  patientAge          Int?
+  contactNumber       String
+  locationCity        String
+  locationState       String
+  requestedByHospital HospitalProfile     @relation("BloodRequestHospital", fields: [requestedByHospitalId], references: [id], onDelete: Restrict)
+  createdByUser       User?               @relation("BloodRequestCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  responses           DonationResponse[]
+  donations           Donation[]
+  notifications       Notification[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([status])
+  @@index([urgency])
+  @@index([bloodGroup, status])
+  @@index([requestedByHospitalId, status])
+  @@index([neededBy])
+}
+
+model BloodDonationCamp {
+  id                  String              @id @default(cuid())
+  name                String
+  description         String?
+  organizedByHospitalId String
+  address             String
+  city                String
+  state               String
+  postalCode          String?
+  startsAt            DateTime
+  endsAt              DateTime
+  expectedDonors      Int?
+  contactNumber       String
+  isActive            Boolean             @default(true)
+  organizedByHospital HospitalProfile     @relation(fields: [organizedByHospitalId], references: [id], onDelete: Restrict)
+  donations           Donation[]
+  notifications       Notification[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([organizedByHospitalId])
+  @@index([startsAt, endsAt])
+  @@index([city, state])
+  @@index([isActive])
+}
+
+model Donation {
+  id             String          @id @default(cuid())
+  donorProfileId String
+  hospitalId     String?
+  campId         String?
+  bloodRequestId String?
+  bloodGroup     BloodGroup
+  unitsDonated   Int
+  donatedAt      DateTime        @default(now())
+  screeningPassed Boolean        @default(false)
+  notes          String?
+  donorProfile   DonorProfile    @relation(fields: [donorProfileId], references: [id], onDelete: Restrict)
+  hospital       HospitalProfile? @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
+  camp           BloodDonationCamp? @relation(fields: [campId], references: [id], onDelete: SetNull)
+  bloodRequest   BloodRequest?   @relation(fields: [bloodRequestId], references: [id], onDelete: SetNull)
+  response       DonationResponse?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([donorProfileId, donatedAt])
+  @@index([hospitalId])
+  @@index([campId])
+  @@index([bloodRequestId])
+  @@index([bloodGroup])
+}
+
+model DonationResponse {
+  id            String         @id @default(cuid())
+  bloodRequestId String
+  donorProfileId String
+  donationId    String?        @unique
+  status        ResponseStatus @default(PENDING)
+  message       String?
+  respondedAt   DateTime       @default(now())
+  bloodRequest  BloodRequest   @relation(fields: [bloodRequestId], references: [id], onDelete: Restrict)
+  donorProfile  DonorProfile   @relation(fields: [donorProfileId], references: [id], onDelete: Restrict)
+  donation      Donation?      @relation(fields: [donationId], references: [id], onDelete: SetNull)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([bloodRequestId, donorProfileId])
+  @@index([status])
+  @@index([bloodRequestId, status])
+  @@index([donorProfileId])
+}
+
+model Notification {
+  id             String             @id @default(cuid())
+  userId         String
+  bloodRequestId String?
+  campId         String?
+  title          String
+  message        String
+  isRead         Boolean            @default(false)
+  sentAt         DateTime           @default(now())
+  user           User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  bloodRequest   BloodRequest?      @relation(fields: [bloodRequestId], references: [id], onDelete: SetNull)
+  camp           BloodDonationCamp? @relation(fields: [campId], references: [id], onDelete: SetNull)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([userId, isRead])
+  @@index([sentAt])
+  @@index([bloodRequestId])
+  @@index([campId])
+}

@@ -1,0 +1,7 @@
+{
+  "extends": "@red-hope/config/typescript/node",
+  "compilerOptions": {
+    "outDir": "./dist"
+  },
+  "include": ["src", "prisma/seed.ts"]
+}
