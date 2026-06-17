@@ -9,6 +9,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDonorDto } from './dto/register-donor.dto';
 import { RegisterHospitalDto } from './dto/register-hospital.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
+import "dotenv/config";
 
 type UserWithHospitalProfile = Prisma.UserGetPayload<{
   include: { hospitalProfile: true };

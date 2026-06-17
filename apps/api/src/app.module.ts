@@ -8,7 +8,7 @@ import { DonorModule } from './modules/donor/donor.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env', '../../packages/db/.env']
+      envFilePath: "../../.env"
     }),
     AuthModule,
     HealthModule,

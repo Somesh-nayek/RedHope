@@ -9,6 +9,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 import { HospitalApprovalGuard } from './guards/hospital-approval.guard';
 import { RolesGuard } from './guards/roles.guard';
+import "dotenv/config";
 
 @Module({
   imports: [

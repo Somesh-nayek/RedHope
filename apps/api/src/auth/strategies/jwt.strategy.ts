@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { UserRole } from '@red-hope/db';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-
+import "dotenv/config";
 export interface JwtPayload {
   sub: string;
   email: string;
