@@ -1,7 +1,6 @@
 {
   "extends": "@red-hope/config/typescript/next",
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
