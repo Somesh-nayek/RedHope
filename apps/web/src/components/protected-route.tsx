@@ -1,12 +1,10 @@
 'use client';
-
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect } from 'react';
 import { useAuth, type UserRole } from '@/lib/auth-context';
 import { LoadingState } from './loading-state';
 import { EmptyState } from './empty-state';
 import { Clock3 } from 'lucide-react';
-
 interface ProtectedRouteProps {
   children: ReactNode;
   requiredRole: UserRole;
@@ -47,6 +45,5 @@ export function ProtectedRoute({
       </div>
     );
   }
-
   return <>{children}</>;
 }
