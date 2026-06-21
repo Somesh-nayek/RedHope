@@ -13,12 +13,15 @@ import {
   DonorRequestDto,
   EligibilityDto
 } from './dto/donor-response.dto';
+import { NotificationService } from '../notification/notification.service';
 
 const ELIGIBILITY_DAYS = 90;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class DonorService {
+  constructor(private readonly notificationService: NotificationService) {}
+
   async getDashboard(userId: string): Promise<DonorDashboardDto> {
     const donor = await this.getDonorProfile(userId);
     const now = new Date();
@@ -81,6 +84,17 @@ export class DonorService {
         state: request.locationState,
         createdAt: request.createdAt
       }));
+  }
+
+  async getEligibility(userId: string): Promise<EligibilityDto> {
+    const donor = await this.getDonorProfile(userId);
+    const latestDonation = await prisma.donation.findFirst({
+      where: { donorProfileId: donor.id },
+      orderBy: { donatedAt: 'desc' },
+      select: { donatedAt: true }
+    });
+
+    return this.calculateEligibility(latestDonation?.donatedAt ?? null);
   }
 
   async respondToRequest(userId: string, requestId: string): Promise<{ message: string }> {
@@ -186,21 +200,18 @@ export class DonorService {
   }
 
   async getNotifications(userId: string): Promise<DonorNotificationDto[]> {
-    return prisma.notification.findMany({
-      where: { userId },
-      select: { id: true, title: true, message: true, isRead: true, createdAt: true },
-      orderBy: [{ isRead: 'asc' }, { createdAt: 'desc' }]
-    });
+    const notifications = await this.notificationService.listForUser(userId, { limit: 50 });
+    return notifications.items.map((notification) => ({
+      id: notification.id,
+      title: notification.title,
+      message: notification.message,
+      isRead: notification.isRead,
+      createdAt: notification.createdAt
+    }));
   }
 
   async markNotificationRead(userId: string, notificationId: string): Promise<{ message: string }> {
-    const result = await prisma.notification.updateMany({
-      where: { id: notificationId, userId },
-      data: { isRead: true }
-    });
-
-    if (result.count === 0) throw new NotFoundException('Notification not found.');
-    return { message: 'Notification marked as read.' };
+    return this.notificationService.markRead(userId, notificationId);
   }
 
   private async getDonorProfile(userId: string) {

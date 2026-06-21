@@ -8,7 +8,7 @@ import {
   UserRole,
   UserStatus
 } from '@prisma/client';
-
+import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 const bloodGroups: BloodGroup[] = [
@@ -36,13 +36,13 @@ async function main(): Promise<void> {
   await prisma.donorProfile.deleteMany();
   await prisma.hospitalProfile.deleteMany();
   await prisma.user.deleteMany();
-
+const adminPassword = await bcrypt.hash("Admin@123", 10);
   const admin = await prisma.user.create({
     data: {
       email: 'admin@redhope.local',
       phoneNumber: '+910000000001',
       name: 'Red Hope Admin',
-      passwordHash: 'seed-admin-password-hash',
+      passwordHash: adminPassword,
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE
     }

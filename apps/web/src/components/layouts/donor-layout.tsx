@@ -3,10 +3,10 @@
 import type { ReactNode } from 'react';
 import { Bell, CalendarDays, ClipboardList, History, LayoutDashboard } from 'lucide-react';
 import { RoleLayout } from '../role-layout';
-import { useDonorDashboard } from '@/lib/donor-api';
+import { useUnreadNotificationCount } from '@/lib/notification-api';
 
 export function DonorLayout({ children }: { children: ReactNode }) {
-  const { data } = useDonorDashboard();
+  const { data } = useUnreadNotificationCount();
   const navigation = [
     { label: 'Dashboard', href: '/donor/dashboard', icon: LayoutDashboard },
     { label: 'Blood Requests', href: '/donor/requests', icon: ClipboardList },
@@ -14,9 +14,9 @@ export function DonorLayout({ children }: { children: ReactNode }) {
     { label: 'Donation History', href: '/donor/history', icon: History },
     {
       label: 'Notifications',
-      href: '/donor/notifications',
+      href: '/notifications',
       icon: Bell,
-      badge: data?.unreadNotificationsCount
+      badge: data?.count
     }
   ];
 

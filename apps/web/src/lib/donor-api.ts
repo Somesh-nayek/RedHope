@@ -91,6 +91,15 @@ export function useDonorRequests() {
   });
 }
 
+export function useDonorEligibility() {
+  const { client, enabled } = useDonorClient();
+  return useQuery({
+    queryKey: ['donor', 'eligibility'],
+    queryFn: () => client.get<Eligibility>('/donor/eligibility'),
+    enabled
+  });
+}
+
 export function useRespondToRequest() {
   const { client } = useDonorClient();
   const queryClient = useQueryClient();

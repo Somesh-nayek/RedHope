@@ -11,7 +11,7 @@ async function bootstrap(): Promise<void> {
   const port = config.get<number>('PORT', 4000);
   const apiPrefix = config.get<string>('API_PREFIX', 'api');
   const webOrigin = config.get<string>('WEB_ORIGIN', 'http://localhost:3000');
-  console.log("JWT:", process.env.JWT_ACCESS_SECRET);
+
   app.enableCors({
     origin: webOrigin,
     credentials: true

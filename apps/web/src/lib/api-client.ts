@@ -58,6 +58,13 @@ export class ApiClient {
     });
   }
 
+  delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'DELETE'
+    });
+  }
+
   auth() {
     return {
       registerDonor: <T>(data: unknown) => this.post<T>('/auth/register/donor', data),

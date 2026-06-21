@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, UserRole, prisma } from '@red-hope/db';
+import { Prisma, UserRole, UserStatus, prisma } from '@red-hope/db';
 import * as bcrypt from 'bcrypt';
 import type { SignOptions } from 'jsonwebtoken';
 import { CurrentUserDto } from './dto/auth-response.dto';
@@ -131,6 +131,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
+    this.assertUserCanAuthenticate(user.status);
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isPasswordValid) {
@@ -168,6 +169,7 @@ export class AuthService {
     if (!user || !user.hashedRefreshToken) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+    this.assertUserCanAuthenticate(user.status);
 
     const isTokenValid = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
     if (!isTokenValid) {
@@ -209,8 +211,15 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
+    this.assertUserCanAuthenticate(user.status);
 
     return this.toCurrentUserDto(user);
+  }
+
+  private assertUserCanAuthenticate(status: UserStatus): void {
+    if (status === UserStatus.SUSPENDED || status === UserStatus.INACTIVE) {
+      throw new UnauthorizedException('User account is not active');
+    }
   }
 
   private generateTokens(

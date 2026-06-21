@@ -91,6 +91,7 @@ export default function DonorRequestsPage() {
                     <TableCell className="text-right">
                       <Button
                         size="sm"
+                        variant={responded ? 'secondary' : 'outline'}
                         disabled={!eligible || responded || response.isPending}
                         onClick={() => void handleRespond(request.requestId)}
                       >

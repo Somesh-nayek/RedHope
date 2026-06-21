@@ -1,3 +1,4 @@
+import { NotificationBell } from './notification-bell';
 import { UserDropdown } from './user-dropdown';
 
 export function Header({ section }: { section: string }) {
@@ -7,7 +8,10 @@ export function Header({ section }: { section: string }) {
         <p className="text-xs font-medium uppercase tracking-widest text-primary">Red Hope</p>
         <p className="text-sm font-semibold">{section}</p>
       </div>
-      <UserDropdown />
+      <div className="flex items-center gap-2">
+        <NotificationBell />
+        <UserDropdown />
+      </div>
     </header>
   );
 }

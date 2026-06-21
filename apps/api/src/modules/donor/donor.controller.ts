@@ -28,6 +28,12 @@ export class DonorController {
     return this.donorService.getRequests();
   }
 
+  @Get('eligibility')
+  @ApiOperation({ summary: 'Get donor eligibility status' })
+  getEligibility(@CurrentUser() user: JwtPayload) {
+    return this.donorService.getEligibility(user.sub);
+  }
+
   @Post('respond/:requestId')
   @ApiOperation({ summary: 'Respond to an open blood request' })
   respond(@CurrentUser() user: JwtPayload, @Param('requestId') requestId: string) {

@@ -77,7 +77,7 @@ export default function LoginPage() {
                 placeholder="Enter your password"
               />
             </div>
-            <Button type="submit" disabled={isLoading} className="w-full">
+            <Button type="submit" disabled={isLoading} className="w-full bg-blue-600">
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>

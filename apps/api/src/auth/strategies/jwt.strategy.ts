@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { UserRole } from '@red-hope/db';
+import { UserRole, UserStatus, prisma } from '@red-hope/db';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import "dotenv/config";
 export interface JwtPayload {
@@ -20,7 +20,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: JwtPayload): JwtPayload {
+  async validate(payload: JwtPayload): Promise<JwtPayload> {
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { status: true }
+    });
+
+    if (!user || user.status === UserStatus.SUSPENDED || user.status === UserStatus.INACTIVE) {
+      throw new UnauthorizedException('User account is not active');
+    }
+
     return payload;
   }
 }

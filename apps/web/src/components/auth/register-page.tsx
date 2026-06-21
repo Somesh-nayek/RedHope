@@ -52,7 +52,7 @@ export default function RegisterPage() {
         };
         const user = await registerDonor(donorData);
         router.replace(dashboardPathFor(user));
-      } else {
+      } else if (role === 'hospital') {
         const hospitalData = {
           hospitalName: formData.hospitalName,
           email: formData.email,
